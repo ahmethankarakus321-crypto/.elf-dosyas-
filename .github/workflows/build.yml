@@ -1,0 +1,25 @@
+name: PS2 ELF Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Build PS2 Project
+      run: |
+        make
+
+    - name: Upload ELF Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: PS2-Game-ELF
+        path: "*.elf"
