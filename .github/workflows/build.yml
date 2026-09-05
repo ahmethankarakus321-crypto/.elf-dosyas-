@@ -16,11 +16,8 @@ jobs:
 
       - name: Build PS2 Project
         run: |
-          make -f Makefile
-
-      - name: Upload ELF Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PS2-Game-ELF
-          path: "*.elf"
-          
+          shell: bash
+          run: |
+            source $PS2DEV/ps2sdk/bin/ps2sdk-setup.sh || true
+            make
+            
