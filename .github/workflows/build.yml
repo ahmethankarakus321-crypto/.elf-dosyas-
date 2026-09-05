@@ -16,7 +16,7 @@ jobs:
 
       - name: Build PS2 Project
         run: |
-          make
+          make -f Makefile
 
       - name: Upload ELF Artifact
         uses: actions/upload-artifact@v4
