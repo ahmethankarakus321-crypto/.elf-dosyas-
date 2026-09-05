@@ -14,7 +14,7 @@ static char padBuf[256] __attribute__((aligned(64)));
 void win_media_player_ciz() {
     scr_printf("\n");
     scr_printf("   =====================================================\n");
-    scr_printf("   |  [>] WINDOWS MEDIA PLAYER v1.0 (PS2 EDITION)       |\n");
+    scr_printf("   |  [>] AHMETHAN MEDIA PLAYER v1.5 (DİNLEMELİ)       |\n");
     scr_printf("   =====================================================\n");
     scr_printf("   |                                                   |\n");
     scr_printf("   |  Calan Parca: Congo Democratic - Remix.wav        |\n");
@@ -24,10 +24,31 @@ void win_media_player_ciz() {
     scr_printf("   KNK SEN SES BOLUMUNDESINNN !\n\n");
 }
 
+void yilan_oyunu_ac() {
+    scr_printf("\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   |  [+] AHMET-OS YILAN OYUNU (SNAKE v1.0)             |\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   |                                                   |\n");
+    scr_printf("   |  Durum: Yilan baslatildi, elmayi ye dostum!       |\n");
+    scr_printf("   =====================================================\n\n");
+}
+
+void canim_acidi_yazdir() {
+    scr_printf("\n\n\n");
+    scr_printf("          *********************************************\n");
+    scr_printf("          *                                           *\n");
+    scr_printf("          *             KNK CANIM ACIDI !             *\n");
+    scr_printf("          *                                           *\n");
+    scr_printf("          *********************************************\n\n\n");
+}
+
 int main() {
     int pad_ok = 0;
     u32 paddata;
     int old_state_triangle = 0;
+    int old_state_square = 0;
+    int old_state_cross = 0;
 
     init_scr();
     
@@ -52,8 +73,12 @@ int main() {
     }
 
     scr_printf("\n\n");
-    scr_printf("     PS2 AHMET-OS MEDIA PLAYER HAZIR!\n");
-    scr_printf("     [ UCGEN ] - Congo Remix Cal!\n\n");
+    scr_printf("     PS2 AHMET-OS MEDIA & GAME CENTER\n");
+    scr_printf("     PS2 GUNUNU HISSETMEK ICIN DUGMELERE BAS\n");
+    scr_printf("     ----------------------------------------\n");
+    scr_printf("     [ UCGEN ] - Ses Cal (Windows Media Player)\n");
+    scr_printf("     [ KARE  ] - Yilan Oyunu Ac\n");
+    scr_printf("     [ X     ] - KNK CANIM ACIDI ! (Ortada)\n\n");
 
     while (1) {
         if (pad_ok) {
@@ -63,6 +88,7 @@ int main() {
             if (ret > 0) {
                 paddata = 0xffff ^ buttons.btns;
 
+                // ÜÇGEN Tuşu: Müzik ve Ses Paneli
                 if (paddata & PAD_TRIANGLE) {
                     if (!old_state_triangle) {
                         win_media_player_ciz();
@@ -71,6 +97,26 @@ int main() {
                     }
                 } else {
                     old_state_triangle = 0;
+                }
+
+                // KARE Tuşu: Yılan Oyunu
+                if (paddata & PAD_SQUARE) {
+                    if (!old_state_square) {
+                        yilan_oyunu_ac();
+                        old_state_square = 1;
+                    }
+                } else {
+                    old_state_square = 0;
+                }
+
+                // X Tuşu: Ortada "KNK CANIM ACIDI !" yazısı
+                if (paddata & PAD_CROSS) {
+                    if (!old_state_cross) {
+                        canim_acidi_yazdir();
+                        old_state_cross = 1;
+                    }
+                } else {
+                    old_state_cross = 0;
                 }
             }
         }
