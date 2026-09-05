@@ -1,28 +1,133 @@
-name: PS2 ELF Build
+#include <tamtypes.h>
+#include <kernel.h>
+#include <sifrpc.h>
+#include <loadfile.h>
+#include <debug.h>
+#include <libpad.h>
+#include <audsrv.h>
 
-on: [push, pull_request]
+extern unsigned char ses_wav[];
+extern unsigned int ses_wav_size;
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:latest
+static char padBuf[256] __attribute__((aligned(64)));
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+void win_media_player_ciz() {
+    scr_printf("\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   |  [>] WINDOWS MEDIA PLAYER v1.0 (PS2 EDITION)       |\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   |                                                   |\n");
+    scr_printf("   |  Calan Parca: Congo Democratic - Remix.wav        |\n");
+    scr_printf("   |  Durum      : [ BASS PATLIYOR... ]                 |\n");
+    scr_printf("   |  Ses Duzeyi : [||||||||||||||||||||] %%100        |\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   KNK SEN SES BOLUMUNDESINNN !\n\n");
+}
 
-      - name: Install Make
-        run: |
-          apk update && apk add --no-cache make
+void yilan_oyunu_ac() {
+    scr_printf("\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   |  [+] PS2 OS YILAN OYUNU (SNAKE v1.0)               |\n");
+    scr_printf("   =====================================================\n");
+    scr_printf("   |                                                   |\n");
+    scr_printf("   |  Durum: Yilan baslatildi, elmayi ye dostum!       |\n");
+    scr_printf("   =====================================================\n\n");
+}
 
-      - name: Build PS2 Project
-        run: make
+void canim_acidi_yazdir() {
+    scr_printf("\n\n\n");
+    scr_printf("          *********************************************\n");
+    scr_printf("          *                                           *\n");
+    scr_printf("          *             KNK CANIM ACIDI !             *\n");
+    scr_printf("          *                                           *\n");
+    scr_printf("          *********************************************\n\n\n");
+}
 
-      - name: Upload ELF Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ps2-executable
-          path: |
-            *.elf
-            **/*.elf
-            
+int main() {
+    int pad_ok = 0;
+    u32 paddata;
+    int old_state_triangle = 0;
+    int old_state_square = 0;
+    int old_state_cross = 0;
+
+    init_scr();
+    
+    SifInitRpc(0);
+    SifLoadModule("rom0:SIO2MAN", 0, NULL);
+    SifLoadModule("rom0:PADMAN", 0, NULL);
+    SifLoadModule("rom0:LIBSD", 0, NULL);
+
+    padInit(0);
+
+    if (audsrv_init() == 0) {
+        struct audsrv_fmt_t format;
+        format.bits = 16;
+        format.freq = 44100;
+        format.channels = 2;
+        audsrv_set_format(&format);
+        audsrv_set_volume(MAX_VOLUME);
+    }
+
+    if (padPortOpen(0, 0, padBuf) > 0) {
+        pad_ok = 1;
+    }
+
+    scr_printf("\n\n");
+    scr_printf("     PS2 OS - SYSTEM HOMEBREW v1.0\n");
+    scr_printf("     PS2 GUNUNU HISSETMEK ICIN DUGMELERE BAS\n");
+    scr_printf("     ----------------------------------------\n");
+    scr_printf("     [ UCGEN ] - Ses Cal (Windows Media Player)\n");
+    scr_printf("     [ KARE  ] - Yilan Oyunu Ac\n");
+    scr_printf("     [ X     ] - KNK CANIM ACIDI ! (Ortada)\n\n");
+
+    while (1) {
+        if (pad_ok) {
+            struct padButtonStatus buttons;
+            int ret = padRead(0, 0, &buttons);
+
+            if (ret > 0) {
+                paddata = 0xffff ^ buttons.btns;
+
+                // ÜÇGEN Tuşu: Müzik ve Ses Paneli
+                if (paddata & PAD_TRIANGLE) {
+                    if (!old_state_triangle) {
+                        win_media_player_ciz();
+                        audsrv_play_audio((char*)ses_wav, ses_wav_size);
+                        old_state_triangle = 1;
+                    }
+                } else {
+                    old_state_triangle = 0;
+                }
+
+                // KARE Tuşu: Yılan Oyunu
+                if (paddata & PAD_SQUARE) {
+                    if (!old_state_square) {
+                        yilan_oyunu_ac();
+                        old_state_square = 1;
+                    }
+                } else {
+                    old_state_square = 0;
+                }
+
+                // X Tuşu: Ortada "KNK CANIM ACIDI !" yazısı
+                if (paddata & PAD_CROSS) {
+                    if (!old_state_cross) {
+                        canim_acidi_yazdir();
+                        old_state_cross = 1;
+                    }
+                } else {
+                    old_state_cross = 0;
+                }
+            }
+        }
+        
+        int i;
+        for (i = 0; i < 100000; i++) {
+            asm("nop");
+        }
+    }
+
+    audsrv_quit();
+    padPortClose(0, 0);
+    return 0;
+}
