@@ -11,16 +11,16 @@ jobs:
     container: ps2dev/ps2dev:latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Build PS2 Project
-      run: |
-        make
+      - name: Build PS2 Project
+        run: |
+          make
 
-    - name: Upload ELF Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: PS2-Game-ELF
-        path: "*.elf"
-        
+      - name: Upload ELF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PS2-Game-ELF
+          path: "*.elf"
+          
