@@ -14,6 +14,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Make in Container
+        run: |
+          apk update && apk add make || apt-get update && apt-get install -y make
+
       - name: Build PS2 Project
         run: |
           export PATH=$PS2DEV/bin:$PS2SDK/bin:$PATH
