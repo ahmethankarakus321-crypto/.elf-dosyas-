@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahmet Store - Özel Uygulama Merkezi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #e0e0e0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        .dev-trigger { position: fixed; top: 15px; right: 15px; background: #1e1e1e; border: 1px solid #333; color: #888; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; z-index: 1000; transition: 0.2s; }
+        .dev-trigger:hover { color: #ff007f; border-color: #ff007f; }
+
+        header { text-align: center; margin: 40px 0 30px 0; }
+        header h1 { color: #00ffcc; font-size: 2.2rem; text-shadow: 0 0 10px rgba(0,255,204,0.3); }
+        header p { color: #888; font-size: 0.95rem; margin-top: 5px; }
+        
+        .container { max-width: 800px; margin: 0 auto; width: 100%; flex: 1; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        .card { background: #1e1e1e; border-radius: 12px; padding: 20px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .card h3 { color: #ff007f; margin-bottom: 10px; font-size: 1.2rem; }
+        .card p { color: #ccc; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4; word-break: break-word; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: auto; }
+        .btn { display: inline-block; background: #00ffcc; color: #121212; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; text-align: center; flex: 1; transition: 0.2s; }
+        .btn:hover { background: #00b399; }
+        
+        .btn-delete { background: #ff4d4d; color: #fff; flex: 0.4; }
+        .btn-delete:hover { background: #cc0000; }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal { background: #181818; border: 2px solid #ff007f; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; }
+        .modal h3 { color: #ff007f; margin-bottom: 15px; }
+        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; }
+        .close-btn:hover { color: #fff; }
+
+        input[type="password"], input[type="text"], textarea { width: 100%; padding: 10px; margin-bottom: 12px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 6px; outline: none; }
+        input:focus, textarea:focus { border-color: #00ffcc; }
+        
+        .file-label { display: block; background: #2a2a2a; border: 1px dashed #00ffcc; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; margin-bottom: 12px; color: #00ffcc; font-size: 0.9rem; }
+        .file-label:hover { background: #333; }
+        
+        .app-list { display: contents; }
+    </style>
+</head>
+<body>
+
+    <button class="dev-trigger" onclick="panelAc()">🔒 Geliştirici</button>
+
+<div class="container">
+    <header>
+        <h1>AHMET STORE</h1>
+        <p>Özel Uygulama ve Yazılım Dağıtım Merkezi</p>
+    </header>
+
+    <div class="grid" id="app-grid">
+        <div id="dynamic-apps" class="app-list"></div>
+    </div>
+</div>
+
+    <div id="dev-modal" class="modal-overlay">
+        <div class="modal">
+            <button class="close-btn" onclick="panelKapat()">✕</button>
+            
+            <div id="login-box">
+                <h3>🔒 Geliştirici Girişi</h3>
+                <p style="color: #888; font-size: 0.85rem; margin-bottom: 15px;">Bu alan sadece yetkili içindir.</p>
+                <input type="password" id="dev-pass" placeholder="Şifre...">
+                <button class="btn" style="width: 100%;" onclick="girisYap()">Giriş Yap</button>
+            </div>
+
+            <div id="upload-box" style="display: none;">
+                <h3 style="color: #00ffcc;">📦 Uygulama Ekle</h3>
+                <p style="color: #00ffcc; font-size: 0.85rem; margin-bottom: 15px;">Hoş geldin AHMETHAN!</p>
+                <input type="text" id="app-name" placeholder="Uygulama Adı">
+                <textarea id="app-desc" placeholder="Açıklama..." rows="3"></textarea>
+                
+                <label class="file-label" for="app-file">📁 Dosya Seç (.apk, .zip vb.)</label>
+                <input type="file" id="app-file" style="display: none;">
+                <p id="file-name-display" style="font-size: 0.8rem; color: #888; margin-bottom: 12px;"></p>
+
+                <button class="btn" style="width: 100%;" onclick="uygulamaEkle()">Mağazaya Ekle</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    window.onload = function() {
+        yuklenenleriGoster();
+        
+        document.getElementById('app-file').addEventListener('change', function(e) {
+            if(e.target.files.length > 0) {
+                document.getElementById('file-name-display').innerText = 'Seçilen: ' + e.target.files[0].name;
+            }
+        });
+    }
+
+    function panelAc() {
+        document.getElementById('dev-modal').style.display = 'flex';
+    }
+
+    function panelKapat() {
+        document.getElementById('dev-modal').style.display = 'none';
+    }
+
+    function girisYap() {
+        const sifre = document.getElementById('dev-pass').value;
+        if (sifre === 'AHMETHAN') {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('upload-box').style.display = 'block';
+        } else {
+            alert('Hatalı Şifre!');
+        }
+    }
+
+    function uygulamaEkle() {
+        const name = document.getElementById('app-name').value;
+        const desc = document.getElementById('app-desc').value;
+        const fileInput = document.getElementById('app-file');
+
+        if(!name || fileInput.files.length === 0) {
+            alert('Lütfen uygulama adını yaz ve bir dosya seç!');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            const fileData = event.target.result;
+            
+            let apps = JSON.parse(localStorage.getItem('ahmet_store_apps') || '[]');
+            apps.push({
+                name: name,
+                desc: desc,
+                fileName: file.name,
+                fileData: fileData
+            });
+            
+            localStorage.setItem('ahmet_store_apps', JSON.stringify(apps));
+
+            alert('Uygulama başarıyla mağazaya eklendi!');
+            document.getElementById('app-name').value = '';
+            document.getElementById('app-desc').value = '';
+            fileInput.value = '';
+            document.getElementById('file-name-display').innerText = '';
+            
+            panelKapat();
+            yuklenenleriGoster();
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function uygulamaSil(index) {
+        let apps = JSON.parse(localStorage.getItem('ahmet_store_apps') || '[]');
+        apps.splice(index, 1);
+        localStorage.setItem('ahmet_store_apps', JSON.stringify(apps));
+        yuklenenleriGoster();
+    }
+
+    function yuklenenleriGoster() {
+        const container = document.getElementById('dynamic-apps');
+        let apps = JSON.parse(localStorage.getItem('ahmet_store_apps') || '[]');
+        
+        container.innerHTML = '';
+        apps.forEach((app, index) => {
+            container.innerHTML += `
+                <div class="card">
+                    <div>
+                        <h3>📦 ${app.name}</h3>
+                        <p>${app.desc}</p>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="dosyaIndir(${index})">İNDİR</button>
+                        <button class="btn btn-delete" onclick="uygulamaSil(${index})">Sil</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function dosyaIndir(index) {
+        let apps = JSON.parse(localStorage.getItem('ahmet_store_apps') || '[]');
+        let app = apps[index];
+
+        if (!app.fileData) {
+            alert('Dosya bulunamadı!');
+            return;
+        }
+
+        const a = document.createElement('a');
+        a.href = app.fileData;
+        a.download = app.fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+        }, 100);
+    }
+</script>
+
+</body>
+</html>
