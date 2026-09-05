@@ -11,6 +11,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Make
+        run: |
+          apk update && apk add --no-cache make
+
       - name: Build PS2 Project
         run: make
 
